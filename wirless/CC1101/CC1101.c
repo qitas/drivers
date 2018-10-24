@@ -3,6 +3,7 @@
                          Qitas CC1101 for STM32
 *******************************************************************************/
 #include <stdio.h>
+
 #include  "regs.h"
 #include  "CC1101.h"
 
@@ -15,27 +16,193 @@ u32 RF_CNT[4];
 u8  RF_RX_MODE = 0; 
 u8  RF_RX_STEP = 0; 
 u8  RF_TX_STAT = 0; 
+
 /*******************************************************************************
-* Function Name  : RFInit
-* Description    : 
+* Function Name  : halSpiByteWrite
+* Description    : send 8 bit data to SDO line
 *******************************************************************************/
+void halSpiByteWrite(u8 cData)
+{
+    u8 i;
+    for(i=0; i<8; i++)
+    { 
+         SCLK_LOW();  
+         if((cData&0x80)==0x80)
+         {
+             SDO_HIGH();    
+         }
+         else
+         {
+             SDO_LOW();  
+         }
+         cData<<=1;
+         Delay_us(3);
+         SCLK_HIGH();    
+         Delay_us(2);
+    }
+    SCLK_LOW();        
+}
+
+void halRfByteWrite(u8 cData)
+{
+    u8 i;
+    for(i=0; i<8; i++)
+    { 
+         SCLK_LOW();  
+         if((cData&0x80)==0x80)
+         {
+             SDO_HIGH();    
+         }
+         else
+         {
+             SDO_LOW();  
+         }
+         cData<<=1;
+         Delay_us(3); 
+         SCLK_HIGH();    
+         Delay_us(2);
+    }
+    SCLK_LOW();        
+}
+
+/*******************************************************************************
+* Function Name  : halSpiByteRead
+* Description    : get 8 bit data from SDI line
+*******************************************************************************/
+u8 halSpiByteRead(void)
+{
+    u8 i, result;
+    result = 0;
+    SCLK_LOW();  
+    Delay_us(3);
+    for(i=0; i<8; i++)
+    {
+        SCLK_HIGH();
+        result<<=1;
+        if(SDI_IN())
+        {
+            result |= 0x01; 
+        }
+        Delay_us(2);
+        SCLK_LOW(); 
+        Delay_us(2);
+    }
+    return result;
+}
+
+/*******************************************************************************
+* Function Name  : RF_HalInit
+*******************************************************************************/
+void Hal_Init(void)
+{
+    GPIO_InitTypeDef GPIO_InitStructure;	
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA|RCC_APB2Periph_GPIOB|RCC_APB2Periph_GPIOC, ENABLE);
+    // CSn + SCLK + MOSI
+    GPIO_InitStructure.GPIO_Pin   = SPI_CS | SPI_SCK | SPI_MOSI;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(SPI_PORT, &GPIO_InitStructure);
+    // MISO
+    GPIO_InitStructure.GPIO_Pin   = SPI_MISO;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IPD;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(SPI_PORT, &GPIO_InitStructure);
+
+    GPIO_InitStructure.GPIO_Pin   = GDO0_Pin | GDO2_Pin;
+    GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IPD;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(GDO_PORT, &GPIO_InitStructure);			
+}
+
 void CC1101_Init(void)
 {
-	  u8 addr[3]={1,0X34,0X56};
+	u8 addr[3]={1,0X34,0X56};
     //halSpi_Init(); 
-		halRf_Init(); 		
+	halRf_Init(); 		
     POWER_RESET();
     WriteRfSettings(); 
-	  RF_SetPWR(0x18);	
-	  RF_SetADR(addr);
-		RF_RX();
-		RF_CNT[0]=0;
-		RF_CNT[1]=0;	
-		Delay_ms(1);
-		GDO0_IRQ();
-		GDO1_IRQ();
-		GDO2_IRQ();
+	RF_SetPWR(0x18);	
+	RF_SetADR(addr);
+	RF_RX();
+	RF_CNT[0]=0;
+	RF_CNT[1]=0;	
+	Delay_ms(1);
+	GDO0_IRQ();
+	GDO1_IRQ();
+	GDO2_IRQ();
 }
+/*******************************************************************************
+* Function Name  :
+*******************************************************************************/
+u8 GDO0_IRQ(void) 
+{	
+		EXTI_InitTypeDef EXTI_InitStructure;   
+    NVIC_InitTypeDef NVIC_InitStructure; 	
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource10);
+    EXTI_ClearITPendingBit(EXTI_Line10);
+    EXTI_InitStructure.EXTI_Line = EXTI_Line10;    
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&EXTI_InitStructure);  	
+	
+		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);  													
+		NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;	 
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;	  
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+		NVIC_Init(&NVIC_InitStructure); 
+}
+/*******************************************************************************
+* Function Name  :
+*******************************************************************************/
+u8 GDO2_IRQ(void) 
+{	
+		EXTI_InitTypeDef EXTI_InitStructure;   
+    NVIC_InitTypeDef NVIC_InitStructure; 	
+    GPIO_EXTILineConfig(GPIO_PortSourceGPIOB, GPIO_PinSource11);
+    EXTI_ClearITPendingBit(EXTI_Line11);
+    EXTI_InitStructure.EXTI_Line = EXTI_Line11;    
+    EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_Init(&EXTI_InitStructure);  	
+	
+		NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);  													
+		NVIC_InitStructure.NVIC_IRQChannel = EXTI15_10_IRQn;	 
+		NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+		NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;	  
+		NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+		NVIC_Init(&NVIC_InitStructure); 
+}
+
+/*******************************************************************************
+* Function Name  : ADC_GDO
+* Description    : Configure the ADC.
+*******************************************************************************/
+void ADC_GDO(void)
+{
+			GPIO_InitTypeDef GPIO_InitStructure;
+			ADC_InitTypeDef ADC_InitStructure;
+			RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1|RCC_APB2Periph_GPIOA |RCC_APB2Periph_AFIO, ENABLE);		
+			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
+			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;
+			GPIO_Init(GPIOA, &GPIO_InitStructure);   		
+	
+			ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;	   
+			ADC_InitStructure.ADC_ScanConvMode = ENABLE;			     
+			ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;	        
+			ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;  
+			ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;		     
+			ADC_InitStructure.ADC_NbrOfChannel = 1;					         
+			ADC_Init(ADC1, &ADC_InitStructure);
+
+			ADC_RegularChannelConfig(ADC1, ADC_Channel_7, 1, ADC_SampleTime_239Cycles5);
+			ADC_Cmd(ADC1, ENABLE);                                                       
+			ADC_SoftwareStartConvCmd(ADC1,ENABLE);                 
+}
+
 /*******************************************************************************
 * Function Name  : WriteRfSettings
 * Description    :
@@ -367,32 +534,7 @@ u16 RF_GetTemp(void)
 		//halRfWriteReg(IOCFG0,0x0e);
 		return AD_value[0];
 }
-/*******************************************************************************
-* Function Name  : ADC_GDO
-* Description    : Configure the ADC.
-*******************************************************************************/
-void ADC_GDO(void)
-{
-			GPIO_InitTypeDef GPIO_InitStructure;
-			ADC_InitTypeDef ADC_InitStructure;
-			RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1|RCC_APB2Periph_GPIOA |RCC_APB2Periph_AFIO, ENABLE);		
-			GPIO_InitStructure.GPIO_Pin = GPIO_Pin_7;
-			GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-			GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AIN;
-			GPIO_Init(GPIOA, &GPIO_InitStructure);   		
-	
-			ADC_InitStructure.ADC_Mode = ADC_Mode_Independent;	   
-			ADC_InitStructure.ADC_ScanConvMode = ENABLE;			     
-			ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;	        
-			ADC_InitStructure.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None;  
-			ADC_InitStructure.ADC_DataAlign = ADC_DataAlign_Right;		     
-			ADC_InitStructure.ADC_NbrOfChannel = 1;					         
-			ADC_Init(ADC1, &ADC_InitStructure);
 
-			ADC_RegularChannelConfig(ADC1, ADC_Channel_7, 1, ADC_SampleTime_239Cycles5);
-			ADC_Cmd(ADC1, ENABLE);                                                       
-			ADC_SoftwareStartConvCmd(ADC1,ENABLE);                 
-}
 /*******************************************************************************
 * Function Name  : RF_RX
 *******************************************************************************/

@@ -1,29 +1,37 @@
-﻿[![sites](adv/Qi.png)](http://www.qitas.cn)
+﻿# connect
 
-# connect
+### 简介
 
-### 项目描述
+包括各种通信器件的驱动文件
 
-包括有线网络和无线网络通信，通信相关的组件和数据加密。
+
 
 ---
 
 ## 组成
 
-####  有线
+####  qitas
 
-包括外设驱动和数据处理
+包括各种文档资源
 
 ####  无线
 
-各种无线协议和驱动
+- CC1101
+
+- SI4432
+
+- LoRa
+
+- 24L01
+
+- FM RDA5807
+
+- IR
+
+- RFID
 
 ---
-## 说明
 
-2018-10-13: 添加RFID代码
-2018-10-12: 规范相关代码和仓库
-
----
 ## 为锻造最美之器
-[![sites](adv/qitas.png)](http://www.qitas.cn)
+
+[![sites](qitas/qitas.png)](http://www.qitas.cn)

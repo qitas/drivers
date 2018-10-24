@@ -16,6 +16,37 @@
 #define  RF_IDLE_Flag     0X17
 #define  RF_TX_Finish     0x19
 
+#define	  SPI_PORT 	  	GPIOB
+#define	  SPI_CS  	  	GPIO_Pin_12
+#define	  SPI_SCK  	  	GPIO_Pin_13
+#define	  SPI_MISO  	GPIO_Pin_14
+#define	  SPI_MOSI  	GPIO_Pin_15
+#define	  GDO_PORT 	  	GPIOB
+#define	  GDO0_Pin    	GPIO_Pin_10
+#define	  GDO2_Pin    	GPIO_Pin_11
+
+//SCLK
+#define SCLK_LOW()   GPIO_ResetBits(SPI_PORT, SPI_SCK)
+#define SCLK_HIGH()  GPIO_SetBits(SPI_PORT, SPI_SCK)
+//MISO
+#define SDI_IN()       		GPIO_ReadInputDataBit(SPI_PORT,SPI_MISO)
+#define SDI_LOW_WAIT()   	while(1==SDI_IN()) 
+#define SDI_HIGH_WAIT()  	while(0==SDI_IN())  
+
+#define SDO_LOW()   GPIO_ResetBits(SPI_PORT, SPI_MOSI)
+#define SDO_HIGH()  GPIO_SetBits(SPI_PORT, SPI_MOSI)
+
+#define CSn_LOW   GPIO_ResetBits(SPI_PORT, SPI_CS)
+#define CSn_HIGH  GPIO_SetBits(SPI_PORT, SPI_CS)
+
+#define GDO0_LOW_WAIT()   while(1==GPIO_ReadInputDataBit(GDO_PORT,GDO0_Pin))  //wait untill CC1100's SO to be cleared
+#define GDO0_HIGH_WAIT()  while(0==GPIO_ReadInputDataBit(GDO_PORT,GDO0_Pin))  //wait untill CC1100's SO to be set
+
+#define GDO2_LOW_WAIT()   while(1==GPIO_ReadInputDataBit(GDO_PORT,GDO2_Pin))  //wait untill CC1100's SO to be cleared
+#define GDO2_HIGH_WAIT()  while(0==GPIO_ReadInputDataBit(GDO_PORT,GDO2_Pin))  //wait untill CC1100's SO to be set
+
+
+
 extern u8 TxBuf[61];
 extern u8 RxBuf[61]; 
 extern u8 Status[8];
