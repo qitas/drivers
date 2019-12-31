@@ -1,4 +1,4 @@
-﻿# [drivers 驱动文件](https://github.com/qitas/drivers)
+﻿# [芯片驱动](https://github.com/qitas/drivers)
 
 #### qitas@qitas.cn
 
@@ -6,9 +6,9 @@
 
 * [无线通信](wirless/)
 * [传感器件](https://github.com/Qitas/sensors)
-* [显示呈现](https://github.com/Qitas/display)
+* [显示交互](https://github.com/Qitas/display)
 
-### [工程案例](https://github.com/qitas/drivers) 
+### [工程案例](https://github.com/qitas) 
 
 * [liteBEE](https://github.com/Qitas/liteBEE) 
 * [liteUSB](https://github.com/Qitas/liteUSB) 
@@ -16,15 +16,6 @@
 * [liteLCD](https://github.com/Qitas/liteLCD) 
 * [litePAD](https://github.com/Qitas/LitePAD) 
 
-### [Qitas 主体项目](https://github.com/qitas) 
+[![sites](http://182.61.61.133/link/resources/head.png)](http://www.qitas.cn) 
 
-* [Pi资源](https://github.com/Qitas/Pi) 
-* [驱动文件](https://github.com/qitas/drivers)
-* [协议文件](https://github.com/Qitas/protocol) 
-* [算法文件](https://github.com/Qitas/algorithm) 
-* [mAIn构建](https://github.com/Qitas/mAIn) 
-* [上位机软件](https://github.com/Qitas/software) 
-
-
-[![sites](qitas/qitas.png)](http://www.qitas.cn)
-## 锻造最美之器
+### 锻造最美之器
