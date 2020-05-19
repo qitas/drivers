@@ -5,6 +5,7 @@
 ### [项目组成](https://github.com/qitas/drivers) 
 
 * [无线通信](wirless/)
+* [数据存储](storage/)
 * [传感器件](https://github.com/Qitas/sensors)
 * [显示交互](https://github.com/Qitas/display)
 
